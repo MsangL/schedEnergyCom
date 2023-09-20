@@ -4,14 +4,15 @@ function MasterProb(P,Ma,GainA,state,R)
     set_optimizer(mod, optimizer_with_attributes( CPLEX.Optimizer,"CPX_PARAM_TILIM" =>3600)) #3600
     Gain=@variable(mod,Gain[i in 1:n])
      if state==1
-                   println("\n***************************************** Problème Maître AVEC INTEGRALITE ***************************************\n")
+                   println("\n***************************************** Master problem with integrality constraints ***************************************\n")
+                   # this one is solved after the last iteration of the column generation
                    xa=@variable(mod,xa[i in 1:n,j in 1:JA,k in 1:Nbp,s in 1:Ma]>=0)
                    z=@variable(mod,z[b in 1:B,i in 1:n,t in 1:T]>=0,Bin)
                    x=@variable(mod,x[i in 1:n,j in 1:JB,s in 1:M]>=0,Bin)
                    w=@variable(mod,w[b in 1:B,i in 1:n,t in 1:T]>=0,Bin)
                        @constraint(mod,bet[i in 1:n,j in 1:JA,k in 1:Nbp; sum(JobA[i,j,k,l] for l in 1:u)>=1],sum(xa[i,j,k,s] for s in 1:Ma) >= 1)
     else
-                   println("\n***************************************** Problème Maître ***************************************\n")
+                   println("\n***************************************** Master problem ***************************************\n")
                    xa=@variable(mod,xa[i in 1:n,j in 1:JA,k in 1:Nbp,s in 1:Ma])
                    z=@variable(mod,z[b in 1:B,i in 1:n,t in 1:T])
                    x=@variable(mod,x[i in 1:n,j in 1:JB,s in 1:M])
