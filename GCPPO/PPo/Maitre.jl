@@ -1,15 +1,16 @@
-function MasterProb(P,Ma,GainA,state,R)
-
+function MasterProb(P,Ma,GainA,state,R,Tli)
     mod=Model(CPLEX.Optimizer)
-    set_optimizer(mod, optimizer_with_attributes( CPLEX.Optimizer,"CPX_PARAM_TILIM" =>3600)) #3600
+    set_optimizer(mod, optimizer_with_attributes( CPLEX.Optimizer,"CPX_PARAM_TILIM" =>Tli)) #3600
+    set_silent(mod)
+
     Gain=@variable(mod,Gain[i in 1:n])
      if state==1
-                   println("\n***************************************** Problème Maître AVEC INTEGRALITE ***************************************\n")
+                   println("\n***************************************** Master problrem with integrality constraints ***************************************\n")
                    xa=@variable(mod,xa[i in 1:n,j in 1:JA,k in 1:Nbp,s in 1:Ma]>=0)
                    z=@variable(mod,z[b in 1:B,i in 1:n,t in 1:T]>=0,Bin)
                    x=@variable(mod,x[i in 1:n,j in 1:JB,s in 1:M]>=0,Bin)
                    w=@variable(mod,w[b in 1:B,i in 1:n,t in 1:T]>=0,Bin)
-                       @constraint(mod,bet[i in 1:n,j in 1:JA,k in 1:Nbp; sum(JobA[i,j,k,l] for l in 1:u)>=1],sum(xa[i,j,k,s] for s in 1:Ma) >= 1)
+                   @constraint(mod,bet[i in 1:n,j in 1:JA,k in 1:Nbp; sum(JobA[i,j,k,l] for l in 1:u)>=1],sum(xa[i,j,k,s] for s in 1:Ma) >= 1)
     else
                    println("\n***************************************** Problème Maître ***************************************\n")
                    xa=@variable(mod,xa[i in 1:n,j in 1:JA,k in 1:Nbp,s in 1:Ma])
@@ -71,9 +72,9 @@ function MasterProb(P,Ma,GainA,state,R)
     optimize!(mod)    
   
     if state!=1
-                    return (mod,alpha,bet,JuMP.objective_value(mod),round(MOI.get(mod, MOI.SolveTime()),digits=2))
+                    return (mod,alpha,bet,JuMP.objective_value(mod),round(MOI.get(mod, MOI.SolveTimeSec()),digits=2))
     else 
-                   return (JuMP.objective_value(mod),JuMP.value.(C),JuMP.value.(V),JuMP.value.(Gain),JuMP.value.(tot),JuMP.value.(inj),JuMP.value.(ext),JuMP.value.(Bess),JuMP.value.(x),JuMP.value.(Puis), round(MOI.get(mod, MOI.SolveTime()),digits=2), JuMP.value.(q))
+                   return (JuMP.objective_value(mod),JuMP.value.(C),JuMP.value.(V),JuMP.value.(Gain),JuMP.value.(tot),JuMP.value.(inj),JuMP.value.(ext),JuMP.value.(Bess),JuMP.value.(x),JuMP.value.(Puis), round(MOI.get(mod, MOI.SolveTimeSec()),digits=2), JuMP.value.(q))
     end
 end
 

@@ -2,7 +2,7 @@ function affiche(f,Ce,Ve,Gain,tote,inje,exte,Besse,xe,Puise,cpuf,q)
  
 
 
-    #= open("VariationObj_"*string(n)*"_CG_plusieurs jours_pricing une fois.txt","a") do io
+     open("VariationObj_"*string(n)*"_CG_plusieurs jours_pricing une fois.txt","a") do io
           println(io,"\n L'objectif après possiblité d'échanges ", f,"kWh \n")
           println(io," Les gains après possiblité d'échanges ", Gain,"kWh\n")
           println(io," Les soutirages du réseau après possiblité d'échanges ", Ce,"kWh\n")
@@ -12,7 +12,7 @@ function affiche(f,Ce,Ve,Gain,tote,inje,exte,Besse,xe,Puise,cpuf,q)
           println(io," Les extractions périodiques après possiblité d'échanges ", exte,"kWh\n")
           println(io," Les niveaux périodiques des batteries après possiblité d'échanges ", Besse,"kWh\n")
           println(io," Le temps CPU est $cpuf")
-    end=#
+    end
 
 
    bat=0

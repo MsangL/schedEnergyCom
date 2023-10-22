@@ -1,16 +1,17 @@
-function subProb(a,b,act,R) 
+function subProb(a,b,act::Number,R::Array{Float64},TliS::Number) 
 # in this function, if act equals one, we return the first feasible solution found. It is equal to one if there no such condition
     println("\n*************************** Subproblem ************************************************\n")
     pricing=Model(CPLEX.Optimizer)
+    #set_silent(pricing)
     xa=@variable(pricing,xa[j in 1:JA, i in 1:n,k in 1:Nbp,t in 1:T,p in 1:pow],Bin)
     x=@variable(pricing,x[i in 1:n,j in 1:JA,k in 1:Nbp,t in 1:T]>=0)
     E=@variable(pricing,E[i in 1:n,j in 1:JA,k in 1:Nbp])
     y=@variable(pricing,y[i in 1:n,k in 1:Nbp, t in 0:T, j in 1:JA]>=0) # température
     set_optimizer(pricing, optimizer_with_attributes( CPLEX.Optimizer,"CPX_PARAM_TILIM" =>TliS))
     
-    if act==1
-             @constraint(pricing,[i in 1:n,j in 1:JA,k in 1:Nbp; R[i,j,k]>0],E[i,j,k]<=0.01)
-             set_optimizer(pricing, optimizer_with_attributes( CPLEX.Optimizer,"CPX_PARAM_INTSOLLIM"=>1))
+      if act==1
+        @constraint(pricing,[i in 1:n,j in 1:JA,k in 1:Nbp; R[i,j,k]>0],E[i,j,k]<=0.01)
+        set_optimizer(pricing, optimizer_with_attributes( CPLEX.Optimizer,"CPX_PARAM_INTSOLLIM"=>1))
       end
     
       @objective(pricing,Min,sum(E[i,j,k] for i in 1:n,j in 1:JA,k in 1:Nbp if R[i,j,k]>0)) 
@@ -29,6 +30,6 @@ function subProb(a,b,act,R)
       @constraint(pricing, [i in 1:n,k in 1:Nbp,l in 1:u ,t in td[k,i,l]:tf[k,i,l]; JobA[i,1,k,l]>0], tmin[k,i,l]<=y[i,k,t,1]<= tmax[k,i,l])
 
     optimize!(pricing)
-    return JuMP.value.(x),JuMP.value.(E), JuMP.objective_value(pricing),round(MOI.get(pricing, MOI.SolveTime()),digits=2),MOI.get(pricing, MOI.RelativeGap())
+    return JuMP.value.(x),JuMP.value.(E), JuMP.objective_value(pricing),round(MOI.get(pricing, MOI.SolveTimeSec()),digits=2),MOI.get(pricing, MOI.RelativeGap())
     
     end

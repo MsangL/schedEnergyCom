@@ -1,7 +1,8 @@
-function pasEchange()
+function pasEchange(Tlimit::Number)
       mod=Model(CPLEX.Optimizer)
-      set_optimizer(mod, optimizer_with_attributes( CPLEX.Optimizer,"CPX_PARAM_TILIM" =>200))
+      set_optimizer(mod, optimizer_with_attributes( CPLEX.Optimizer,"CPX_PARAM_TILIM" =>Tlimit))
       Gain=@variable(mod,Gain[i in 1:n])
+      set_silent(mod)
       x=@variable(mod,x[i in 1:n,j in 1:JB,s in 1:M]>=0,Bin)
       xa=@variable(mod,xa[j in 1:JA, i in 1:n,k in 1:Nbp,t in 1:T,s in 1:pow],Bin)
       z=@variable(mod,z[b in 1:B,i in 1:n,t in 1:T]>=0,Bin)
@@ -14,12 +15,7 @@ function pasEchange()
       y=@variable(mod,y[i in 1:n,k in 1:Nbp, t in 0:T, j in 1:JA]>=0) # température 
       C=@variable(mod,C[i in 1:n]>=0)
       V=@variable(mod,V[i in 1:n]>=0)
-      ###########
-      inj=@variable(mod,inj[t  in 1:T]>=0)
-      ext=@variable(mod,ext[t  in 1:T]>=0)
-      Puis=@variable(mod,Puis[i in 1:n,j in 1:JA,k in 1:Nbp, t in 1:T]>=0)
-      tot=@variable(mod,tot[t in 1:T]>=0)
-      Bess=@variable(mod,Bess[i in 1:T]>=0)
+     
       ############
       @objective(mod,Min,dist*sum(Cg[i,t] for i in 1:n,t in 1:T))
       @constraint(mod,[i in 1:n, t in 1:T],sum(Pa[i,j,k,s]*xa[j,i,k,t,s] for j in 1:JA,s in 1:pow, k in 1:Nbp)+sum(Pb[i,t,j,s]*x[i,j,s] for j in 1:JB,s in 1:M )+sum((q[b,i,t]/dist) for b in 1:B)+p[i,t]==L*prod1[i,t]+sum(f[j,i,t] for j in 1:n if i!=j)+Cg[i,t]-Pg[i,t]-sum(f[i,j,t] for j in 1:n if i!=j))
@@ -53,11 +49,6 @@ function pasEchange()
       ##########################################################################################contraintes auxilliaires
       @constraint(mod,[i in 1:n],V[i]==dist*sum(Pg[i,t] for t in 1:T ))
       @constraint(mod,[i in 1:n],C[i]==dist*sum(Cg[i,t] for t in 1:T ))
-      @constraint(mod,[j in 1:JA,t in 1:T, i in 1:n,k in 1:Nbp],Puis[i,j,k,t]==sum(Pa[i,j,k,s]*xa[j,i,k,t,s] for s in 1:pow))
-      @constraint(mod,[t in 1:T],tot[t]==dist*sum(Puis[i,j,k,t] for i in 1:n, j in 1:JA,k in 1:Nbp)+dist*sum(p[i,t] for i in 1:n)+dist*sum(Pb[i,t,j,s] for i in 1:n,j in 1:JB,s in 1:M if JB>1))
-      @constraint(mod,[t in 1:T],inj[t]==dist*sum(Pg[i,t] for i in 1:n ))
-      @constraint(mod,[t in 1:T],ext[t]==dist*sum(Cg[i,t] for i in 1:n ))
-      @constraint(mod,[t in 1:T],Bess[t]==sum(E[b,i,t] for i in 1:n, b in B))
       
       optimize!(mod)
       return (JuMP.value.(Gain),JuMP.value.(xa))

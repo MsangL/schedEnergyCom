@@ -1,0 +1,10 @@
+*************************** The objective equals 233.7429228631642 at iteration 1*************************
+E equals -1000 with gap from the best bound 0
+*************************** The objective equals 237.741691052153 at iteration 2*************************
+E equals -47.606366993500174 with gap from the best bound 0.036892510660599905
+*************************** The objective equals 237.7416851037463 at iteration 3*************************
+E equals -25.59122109337062 with gap from the best bound 0.06915700099667692
+*************************** The objective equals 237.7416851037463 at iteration 4*************************
+E equals -25.591215144963922 with gap from the best bound 0.06915701707148833
+*************************** The objective equals 237.7416851037463 at iteration 5*************************
+E equals -25.591215144963922 with gap from the best bound 0.06915701707148833

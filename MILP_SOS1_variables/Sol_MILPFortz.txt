@@ -1,0 +1,1 @@
+MILP with SOS variables with the day index

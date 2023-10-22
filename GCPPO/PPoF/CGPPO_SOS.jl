@@ -1,5 +1,5 @@
 
-function CGen(maxIter,GainA,xa,R,P)
+function CGen(maxIter::Int,GainA::Vector{Float64},xa::Array{Float64},R::Array{Float64},P::Array{Float64},Tli::Number,TliS::Number)
     P[:,:,:,:,:].=100
     iter=1	
    maximumTime=2000
@@ -17,7 +17,7 @@ function CGen(maxIter,GainA,xa,R,P)
     open("VariationObj_"*string(n)*"_CG_PPoFortz.txt","w") do io
     end
           
-    (mod,alpha,bet,f,cp2)=MasterProb(P,iter,GainA,0,R) # Calcul les valeurs duales initiales
+    (mod,alpha,bet,f,cp2)=MasterProb(P,iter,GainA,0,R,Tli) # Calcul les valeurs duales initiales
     
     C=C+cp2
     obj=-1000
@@ -31,29 +31,29 @@ function CGen(maxIter,GainA,xa,R,P)
           end
      
         if abs(obj)<=0.01               # Condition d'arrêt Obj==0
-                 println("Solution OPTIMALE trouvée avec condition |E|<= epsilon\n")
+                 @info "OPTIMALE found under condition |E|<= epsilon\n"
                  return f,P,iter,C
         end
         
         iter=iter+1
 
-       (sch,E,obj,cp1,gap)=subProb(alpha,bet,0,R)
+       (sch,E,obj,cp1,gap)=subProb(alpha,bet,0,R,TliS)
 
         for i in 1:n
             for j in 1:JA
                 for k in Nbp
                     if E[i,j,k]<=0 && R[i,j,k]>0
-                            P[i,j,k,:,iter]=sch[i,j,k,:]
+                            P[i,j,k,:,iter]=view(sch,i,j,k,:)
                     end
                 end
             end
         end
        
-    (mod,alpha,bet,f,cp2)=MasterProb(P,iter,GainA,0,R)
+    (mod,alpha,bet,f,cp2)=MasterProb(P,iter,GainA,0,R,Tli)
      C=C+cp1+cp2
     end     #end while
     
-    println("La solution optimale n'a pas été obtenue en ",maxIter," itérations")
+    @info "No optimal solution was found after ",maxIter," itérations"
 
     return f,P,iter,C
 

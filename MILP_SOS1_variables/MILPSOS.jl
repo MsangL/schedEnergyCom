@@ -1,15 +1,14 @@
 ### By SANGARE Mariam ###
 ### November 2021
-Tli=200
 
  using JuMP,CPLEX
  
 include("pasEchange.jl")
 
-function AvecEchange(GainA,jour)
+function AvecEchange(GainA::Vector{Float64},jour::Int,Tli::Number)
     println("\n***************************************** Members exchange their surplus ***************************************\n")
       mod=Model(CPLEX.Optimizer)
-      set_optimizer(mod, optimizer_with_attributes( CPLEX.Optimizer,"CPX_PARAM_TILIM" =>Tli, "CPX_PARAM_WORKMEM"=>500,"CPX_PARAM_WORKDIR"=> "/auto/msangare/CPXsol","CPX_PARAM_NODEFILEIND"=>3))
+      set_optimizer(mod, optimizer_with_attributes( CPLEX.Optimizer,"CPX_PARAM_TILIM" =>Tli, "CPX_PARAM_WORKMEM"=>500,"CPX_PARAM_WORKDIR"=> "/home/mariam/julia/julia-1.6.2/Bin/CPXsol","CPX_PARAM_NODEFILEIND"=>3))
       Gain=@variable(mod,Gain[i in 1:n,l in 1:u])
       x=@variable(mod,x[i in 1:n,j in 1:JB,s in 1:M,l in 1:u]>=0,Bin)
       z=@variable(mod,z[b in 1:B,i in 1:n,t in 1:T,l in 1:u]>=0,Bin)
@@ -72,36 +71,36 @@ function AvecEchange(GainA,jour)
       @constraint(mod,[i in 1:n,l in 1:u],C[i,l]==dist*sum(Cg[i,t,l] for t in 1:T ))
       
     optimize!(mod)    
-    return round(JuMP.objective_value(mod),digits=2),round(MOI.get(mod, MOI.SolveTime()), digits=2),round(JuMP.objective_bound(mod),digits=2),round(MOI.get(mod, MOI.RelativeGap()),digits=4),1        
+    return round(JuMP.objective_value(mod),digits=2),round(MOI.get(mod, MOI.SolveTimeSec()), digits=2),round(JuMP.objective_bound(mod),digits=2),round(MOI.get(mod, MOI.RelativeGap()),digits=4),1        
 end
  
  
  
-function appel1(jour,n)
-          include("n"*string(n)*"_t48.txt")
-         GainA,xa=pasEchange()
-         obj,cpu,Bb,gap,fin=AvecEchange(GainA,jour)  
+function appel1(jour::Int,n::Int,Tlimit::Number)
+          include("Data/n"*string(n)*"_t48.jl")
+          GainA,xa=pasEchange(200.0)
+          obj,cpu,Bb,gap,fin=AvecEchange(GainA,jour,200.0)  
           gap*=100
 
           open("Sol_MILPFortz.txt", "w") do io
-               if fin==1
-                        if cpu>Tli
-                               println(io, "$n & $obj & $gap & $Bb & \$t_l\$")
-                        else
-                               println(io, "$n & $obj & $gap& $Bb & $cpu")
-                        end
+              if fin==1
+                     if cpu>Tli
+                            println(io, "$n & $obj & $gap & $Bb & \$t_l\$")
+                     else
+                            println(io, "$n & $obj & $gap& $Bb & $cpu")
+                     end
               else
-                       println(io, "$n & *** & *** & $Bb & \$t_l\$")
+                            println(io, "$n & *** & *** & $Bb & \$t_l\$")
              end
           end
 end
 
 function appel()
           open("Sol_MILPFortz.txt", "w") do io
-          		println(io,"MILP with SOS variables with the day index")
+          	println(io,"MILP with SOS variables with the day index")
           end
           for n in [7]
-                 appel1(1,n)
+                 appel1(1,n,200.0)
          end
          
 end

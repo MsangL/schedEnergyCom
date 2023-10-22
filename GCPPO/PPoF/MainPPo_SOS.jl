@@ -1,43 +1,45 @@
 ### By Mariam SANGARE ###
 ### November 2021     ###
-using JuMP
-using CPLEX
+using JuMP,CPLEX
 
-Tli=5600
-TliS=200
-include("pasEchange.jl")
-include("Maitre.jl")
-include("AfficheGc.jl")
-include("subProblemPPO_SOS.jl")
-include("CGPPO_SOS.jl")
-
-lim=0.6
+# Tli : is the master problem's solving time limit
+#TliS : is the subproblem's solving time limit
 
 
-function appel() 
-   open("Sol_PPoFortz.txt", "w") do io
-   end
-# for n in [224]
-   for n in [7]
-           include("n"*string(n)*"_t48.txt")
-           P= Array{Float64}(undef, (n,JA,Nbp,T,maxIterGC))
-           R= Array{Float64}(undef, (n,JA,Nbp))            
-           R[:,:,:].=sum(JobA[:,:,:,l] for l in 1:u)
-           
-           GainA,xa=pasEchange()                       # Determine the initial solution
-           f_e,P,iter,cpu1=CGen(maxIterGC,GainA,xa,R,P)
-           f,Ce,Ve,Gain,tote,inje,exte,Besse,xe,Puise,cpu2,q=MasterProb(P,maxIterGC,GainA,1,R)
-           cpuf=cpu1+cpu2
-           
-          open("VariationObj_"*string(n)*"_CG_PPoFortz.txt","a") do io
-                   println(io,"\n La solution obtenue est $f et le temps est : $cpuf et la dernière itération était à : $iter\n")
-           end
-           #aa=affiche(f,Ce,Ve,Gain,tote,inje,exte,Besse,xe,Puise,cpuf,q)
+function MainPPoSOS(Tli::Number,TliS::Number) 
+    include("pasEchange.jl")                 # Determines the initial solution
+    include("Maitre.jl")                     # Master problem
+    include("AfficheGc.jl")                  # print the output and the graphs in latex format
+    include("subProblemPPO_SOS.jl")
+    include("CGPPO_SOS.jl")
+
+    TimeLimitInitialSolution=TliS
+    open("Sol_PPoFortz.txt", "w") do io
+   		println(io,"This file contains the outputs in latex format\n")
+    end
+   #for n in [7 28 56 112 224]
+  for n in [7]
+        include("Data/n"*string(n)*"_t48.jl")
+        P= Array{Float64}(undef, (n,JA,Nbp,T,maxIterGC))
+        R= Array{Float64}(undef, (n,JA,Nbp))             # R[i,j,k] is greater than one if task j is required in room k at least once over the planning horizon
+        xa=zeros(JA,n,Nbp,T,pow)
+        GainA=zeros(n)
+        view(R,:,:,:).=sum(view(JobA,:,:,:,l) for l in 1:u)
+        cpu1=0
+        cpuf=0
+        GainA,xa=pasEchange(TliS)                          # Determines the initial solution    
+        f,P,iter,cpu1=CGen(maxIterGC,GainA,xa,R,P,Tli,TliS)
+        cpuf=cpuf+cpu1
+        f,Ce,Ve,Gain,tote,inje,exte,Besse,xe,Puise,cpu1,q=MasterProb(P,maxIterGC,GainA,1,R,Tli) # solve master problem with integrality constrains
+        cpuf=cpuf+cpu1
+        open("VariationObj_"*string(n)*"_CG_PPoFortz.txt","a") do io
+          	println(io,"\n solution is $f the cpu time : $cpuf\n")
+        end
+        #affiche(f,Ce,Ve,Gain,tote,inje,exte,Besse,xe,Puise,cpuf,q)         # print the graphs in latex format 
             
-           f=round(f,digits=2)
-           open("Sol_PPoFortz.txt", "a") do io
-                         println(io, "$f & $cpuf & gap")
-          end
+        open("Sol_PPoFortz.txt", "a") do io
+            println(io,  round(f,digits=2),"& $cpuf & gap")
+        end
     end
 end
-appel()
+MainPPoSOS(3600.0,200.0)

@@ -2,7 +2,7 @@ function pasEchange(Tlimit::Number)
       mod=Model(CPLEX.Optimizer)
       set_optimizer(mod, optimizer_with_attributes( CPLEX.Optimizer,"CPX_PARAM_TILIM" =>Tlimit))
       Gain=@variable(mod,Gain[i in 1:n])
-      set_silent(mod)
+      #set_silent(mod)
       x=@variable(mod,x[i in 1:n,j in 1:JB,s in 1:M]>=0,Bin)
       xa=@variable(mod,xa[j in 1:JA, i in 1:n,k in 1:Nbp,t in 1:T,s in 1:pow],Bin)
       z=@variable(mod,z[b in 1:B,i in 1:n,t in 1:T]>=0,Bin)
@@ -51,6 +51,6 @@ function pasEchange(Tlimit::Number)
       @constraint(mod,[i in 1:n],C[i]==dist*sum(Cg[i,t] for t in 1:T ))
       
       optimize!(mod)
-      return (JuMP.value.(Gain),JuMP.value.(xa))
+      return JuMP.value.(Gain),JuMP.value.(xa)
 end
 
