@@ -7,6 +7,4 @@ Sangaré, M, Bourreau, E., Fortz, B., Pachurka, A., and Poss, M. Loads schedulin
 Notice:
 The file named <code>pasEchange.jl</code> calculates the solution when the members do not exchange their surplus within the community. These solutions are used as initial solutions for the column generation-based heuristics and to ensure that members' situations do not deteriorate after joining a community.
 
-
-
-
+Before solving the <code>MILP with SOS1 variables</code>, please set <code>CPX_PARAM_WORKDIR</code> in file <code>MILPSOS.jl</code>.
