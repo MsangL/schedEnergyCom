@@ -1,5 +1,6 @@
 using JuMP, CPLEX
-u=3
+u=3 # We solve for 3 days.
+
 include("pasEchange.jl")
 include("MB_js.jl")
 function solveOutput(jour::Int,Tli::Number,Tlimit)
@@ -18,7 +19,9 @@ function solveOutput(jour::Int,Tli::Number,Tlimit)
               s=s*" "*string(E0[b,i,T])*";"
           end
      end
-     
+    
+     #begin updating the next day's file when members do not exchange their surpluses
+    
      open("Data/jour"*string(jour+1)*".jl","a") do io
             println(io,"xi0=["*chop(s)*"]")
      end
@@ -48,7 +51,9 @@ function solveOutput(jour::Int,Tli::Number,Tlimit)
      open("Data/jour"*string(jour+1)*".jl","a") do io
             println(io,"te0=["*chop(s)*"]")
      end
+    # end updating the next day's file when members do not exchange their surpluses.
     #*********************************************************************
+    # Solve the problem for day $jour when the members exchange their surplus
      cpu,C,Gain,E,y,gap,inje,exte,Besse,tote,q,xa=AvecEchanges(GainA,jour,Tlimit)
 
 
@@ -152,7 +157,8 @@ function solveOutput(jour::Int,Tli::Number,Tlimit)
           s=s*";"
      end
           
-     
+     # Begin updating the next day's file when members exchange energy
+    
      open("Data/jour"*string(jour+1)*".jl","a") do io
             println(io,"y00=["*chop(s)*"]")
      end
@@ -169,7 +175,7 @@ function solveOutput(jour::Int,Tli::Number,Tlimit)
      open("Data/jour"*string(jour+1)*".jl","a") do io
             println(io,"te=["*chop(s)*"]")
      end
-     
+     # end updating the next day's file when members exchange energy.
      
      production= Array{Float64}(undef, (T))
      for t in 1:T
